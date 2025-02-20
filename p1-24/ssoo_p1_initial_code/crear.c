@@ -27,7 +27,12 @@ int main(int argc, char *argv[]) {
         return -1;
     }
     printf("Archivo %s creado con exito\n", argv[1]);
-    close(fd);
+
+    if (close(fd) < 0) { //Se cierra el archivo
+        perror("Error cerrando el archivo\n");
+        return -1;
+    }
+
     umask(temp_mask); //Se restaura la máscara de creación de archivos
     return 0; //Ejecución correcta
 }
