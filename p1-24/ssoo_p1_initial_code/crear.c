@@ -6,8 +6,6 @@
 #include <unistd.h>
 #include <string.h>
 
-
-
 int main(int argc, char *argv[]) {
     if (argc != 3){
         perror("Error: el formato es: ./crear <fichero> <modo>\n"); //Argumentos incorrectos
@@ -17,11 +15,11 @@ int main(int argc, char *argv[]) {
     char *endptr;
     errno = 0;
     long tmp1=strtol(argv[2], &endptr, 8); //Conversión de modo a octal
-    if (errno!=0 || *endptr != '\0'){ //Comprobación de errores
+    if (errno!=0 || *endptr != '\0' || tmp1>777){ //Comprobación de errores
         perror("Error: permisos erróneos\n");
         return -1;
     }
-
+    mode_t temp_mask = umask(0); //Se guarda la máscara de creación de archivos
     umask(0); //Se establece la máscara de creación de archivos
     int fd;
     if ((fd = open(argv[1], O_CREAT | O_WRONLY, tmp1)) < 0) { //Se intenta crear el archivo
@@ -30,6 +28,6 @@ int main(int argc, char *argv[]) {
     }
     printf("Archivo %s creado con exito\n", argv[1]);
     close(fd);
+    umask(temp_mask); //Se restaura la máscara de creación de archivos
     return 0; //Ejecución correcta
 }
-
