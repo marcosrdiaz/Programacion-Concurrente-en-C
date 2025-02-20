@@ -3,6 +3,5 @@ project(sistemas C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(sistemas
-        HelloWorld.c
-        Clase2.c)
+add_subdirectory(ejercicios)
+add_subdirectory(p1-24)
