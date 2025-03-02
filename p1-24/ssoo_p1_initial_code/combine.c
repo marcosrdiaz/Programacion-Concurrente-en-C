@@ -43,14 +43,19 @@ int main(int argc, char *argv[]) {
     // Lectura del primer fichero
     while (read(fdin1, &buf, size) > 0 && (i < 100)) {
         alumnos[i] = buf;
+        printf("before: %d", i);
         i++;
+        printf("after: %d", i);
     }
 
     // Lectura del segundo archivo
     while (read(fdin2, &buf, size) > 0 && (i < 100)) {
         alumnos[i] = buf;
+        printf("before: %d", i);
         i++;
+        printf("after: %d", i);
     }
+
     const int n_alumn = i; // Se guarda el número de alumnos en una constante
 
     if (n_alumn > 100) {
