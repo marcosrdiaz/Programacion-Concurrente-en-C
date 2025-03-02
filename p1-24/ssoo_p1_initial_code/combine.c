@@ -6,13 +6,15 @@
 #include <fcntl.h>
 #include <string.h>
 
+const int LIMITE_ALUMNOS = 100;
+
 struct alumno {
-    char nombre[50];
-    int nota;
-    int convocatoria;
+	char nombre[50];
+	int nota;
+	int convocatoria;
 };
 
-// Para poder usar qsort hace falta hacerle saber el criterio de ordenación
+// Para poder usar qsort hace falta establecer el criterio de ordenación
 int compararAlumnos(const void *a, const void *b) {
     return ((struct alumno *)a)->nota - ((struct alumno *)b)->nota;
 }
@@ -30,38 +32,41 @@ int main(int argc, char *argv[]) {
     int fdin2 = open(dir2, O_RDONLY, 0755);
     int fdout = open(dir3, O_WRONLY | O_CREAT | O_TRUNC, 0777);
 
-    if (fdin1 < 0 || fdin2 < 0 || fdout < 0) {
-        perror("Error al abrir los ficheros, revisa los parámetros pasados\n");
-        return -1;
-    }
-    // Si se han abierto bien los ficheros, empezamos a clonar:
-    struct alumno buf;            // Buffer para lectura de alumnos
-    struct alumno alumnos[100];   // Array con todos los alumnos
-    int i = 0;                    // Cuenta de alumnos (verificando que no supere 100)
-    int size = sizeof(struct alumno); // 50 + 4 + 4
+	if (fdin1 < 0 || fdin2 < 0 || fdout < 0)  {
+		perror("Error al abrir los ficheros, revisa los parámetros pasados\n");
+		return -1;
+	}
+	// Si se han abierto bien los ficheros, empezamos a clonar:
+	struct alumno buf;						// Buffer para lectura de alumnos
+	struct alumno alumnos[LIMITE_ALUMNOS]; 	// Array con todos los alumnos
+	int i = 0;  						// Cuenta de alumnos (verificando que no supere 100)
+	int size = sizeof(struct alumno); // 50 + 4 + 4
 
-    // Lectura del primer fichero
-    while (read(fdin1, &buf, size) > 0 && (i < 100)) {
-        alumnos[i] = buf;
-        printf("before: %d", i);
-        i++;
-        printf("after: %d", i);
-    }
+	// Lectura del primer fichero 
+	// i <= Limite sirve para que guarde hasta 101 alumnos, si para a los 100 no se puede saber si habia justo 100 o más
+	while( read(fdin1, &buf, size) > 0 ){
+		if (i == LIMITE_ALUMNOS){
+			// Cuando i=100, alumnos[99] acabara de ser añadido, es decir, ya habrá 100 alumnos en la lista
+			perror("Error, hay más de 100 alumnos\n");
+			return -1;
+		}
+		alumnos[i] = buf;
+		++i;
+	}
 
-    // Lectura del segundo archivo
-    while (read(fdin2, &buf, size) > 0 && (i < 100)) {
-        alumnos[i] = buf;
-        printf("before: %d", i);
-        i++;
-        printf("after: %d", i);
-    }
+	// Lectura del seegundo archivo
+	while( read(fdin2, &buf, size) > 0){
+		if (i == LIMITE_ALUMNOS){
+			// Cuando i=100, alumnos[99] acabara de ser añadido, es decir, ya habrá 100 alumnos en la lista
+			perror("Error, hay más de 100 alumnos\n");
+			return -1;
+		}
+		alumnos[i] = buf;
+		++i;
+	}
 
-    const int n_alumn = i; // Se guarda el número de alumnos en una constante
 
-    if (n_alumn > 100) {
-        perror("Error, hay más de 100 alumnos\n");
-        return -1;
-    }
+	const int n_alumn = i; // Se guarda el numero de alumnos en una constante
 
     // Ordenar los alumnos por nota de menor a mayor
     qsort(alumnos, n_alumn, size, compararAlumnos);
@@ -138,10 +143,24 @@ int main(int argc, char *argv[]) {
     }
     printf("%s", buffer);
 
-    // Cierre de los descriptores
-    close(fdin1);
-    close(fdin2);
-    close(fdout);
-    close(fdcsv);
-    return 0;
+    int ret1 = -1, ret2 = -1, ret3 = -1, ret4 = -1;
+	// Cierre de los descriptores
+	ret1 = close(fdin1);
+	ret2 = close(fdin2);
+	ret3 = close(fdout);
+	ret4 = close(fdcsv);
+
+	if(ret1 == -1 || ret2 == -1 || ret3 == -1 || ret4 == -1) {
+        perror("Error al cerrar el archivo");
+        return 1;
+    }
+	return 0;
 }
+
+/*
+	LLegar a la carpeta de los .dat:
+
+	../../ssoo_p1_probador/f1.dat
+
+
+*/
