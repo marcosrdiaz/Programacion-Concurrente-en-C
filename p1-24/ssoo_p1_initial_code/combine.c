@@ -30,9 +30,8 @@ int main(int argc, char *argv[]) {
     // printf("Los ficheros son: %s, %s, %s\n", dir1, dir2, dir3);
     int fdin1 = open(dir1, O_RDONLY, 0755);
     int fdin2 = open(dir2, O_RDONLY, 0755);
-    int fdout = open(dir3, O_WRONLY | O_CREAT | O_TRUNC, 0777);
 
-	if (fdin1 < 0 || fdin2 < 0 || fdout < 0)  {
+	if (fdin1 < 0 || fdin2 < 0)  {
 		perror("Error al abrir los ficheros, revisa los parámetros pasados\n");
 		return -1;
 	}
@@ -67,6 +66,14 @@ int main(int argc, char *argv[]) {
 
 
 	const int n_alumn = i; // Se guarda el numero de alumnos en una constante
+
+	// Como hay una cantidad correcta de alumnos, se abre el fichero de salida
+
+    int fdout = open(dir3, O_WRONLY | O_CREAT | O_TRUNC, 0777);
+	if (fdout < 0)  {
+		perror("Error al abrir los ficheros, revisa los parámetros pasados\n");
+		return -1;
+	}
 
     // Ordenar los alumnos por nota de menor a mayor
     qsort(alumnos, n_alumn, size, compararAlumnos);
