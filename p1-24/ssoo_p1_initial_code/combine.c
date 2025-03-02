@@ -39,33 +39,32 @@ int main(int argc, char *argv[]){
 	// Si se han abierto bien los ficheros, empezamos a clonar:
 	struct alumno buf;						// Buffer para lectura de alumnos
 	struct alumno alumnos[LIMITE_ALUMNOS]; 	// Array con todos los alumnos
-	long int i = 0;  						// Cuenta de alumnos (verificando que no supere 100)
+	int i = 0;  						// Cuenta de alumnos (verificando que no supere 100)
 	int size = sizeof(struct alumno); // 50 + 4 + 4
 
 	// Lectura del primer fichero 
 	// i <= Limite sirve para que guarde hasta 101 alumnos, si para a los 100 no se puede saber si habia justo 100 o más
-	while( read(fdin1, &buf, size) > 0 && (i <= LIMITE_ALUMNOS) ){
-		/* printf("Alumno[%d]:\n", i);
-		printf("%s\n", buf.nombre);
-        printf("%d\n", buf.nota);
-        printf("%d\n", buf.convocatoria); 
-		printf("----------------------------------\n"); */
+	while( read(fdin1, &buf, size) > 0 ){
+		if (i == LIMITE_ALUMNOS){
+			// Cuando i=100, alumnos[99] acabara de ser añadido, es decir, ya habrá 100 alumnos en la lista
+			perror("Error, hay más de 100 alumnos\n");
+			return -1;
+		}
 		alumnos[i] = buf;
 		++i;
 	}
 
 	// Lectura del seegundo archivo
-	while( read(fdin2, &buf, size) > 0 && (i <= LIMITE_ALUMNOS) ){
+	while( read(fdin2, &buf, size) > 0){
+		if (i == LIMITE_ALUMNOS){
+			// Cuando i=100, alumnos[99] acabara de ser añadido, es decir, ya habrá 100 alumnos en la lista
+			perror("Error, hay más de 100 alumnos\n");
+			return -1;
+		}
 		alumnos[i] = buf;
 		++i;
 	}
-	
-	// En los whiles, si hay más de 100 alumnos, tan solo no se añaden más alumnos. Para sacar el error, hace falta este if
-	// Si ha habido mas de 100 un alumnos, i vale 101 
-	if (i > LIMITE_ALUMNOS) {
-		perror("Error, hay más de 100 alumnos\n");
-		return -1;
-	}
+
 
 	const int n_alumn = i; // Se guarda el numero de alumnos en una constante
 
