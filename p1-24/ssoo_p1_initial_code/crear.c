@@ -28,6 +28,12 @@ int main(int argc, char *argv[]) {
     }
     printf("Archivo %s creado con exito\n", argv[1]);
 
+    int ret = chmod(argv[1], tmp1); //Se cambian los permisos del archivo
+    if (ret < 0) { //Comprobación de errores
+        perror("Error asociando los permisos.\n");
+        return -1;
+    }
+
     if (close(fd) < 0) { //Se cierra el archivo
         perror("Error cerrando el archivo\n");
         return -1;
