@@ -4,7 +4,7 @@ FLAGS=-Wno-implicit-function-declaration
 CFLAGS=-I.
 ###############################
 
-# MODIFIED ME ##
+# MODIFY ME ##
 
 OBJ = scripter.o 
 
