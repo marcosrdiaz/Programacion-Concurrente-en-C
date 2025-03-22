@@ -3,5 +3,6 @@ project(sistemas C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_subdirectory(ejercicios)
+add_subdirectory(ejsClase)
+add_subdirectory(ejsRepaso)
 add_subdirectory(p1-24)

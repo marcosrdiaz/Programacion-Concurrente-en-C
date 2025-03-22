@@ -4,10 +4,8 @@ CFLAGS = -Wall -Werror -Wextra -O2
 PROG1 = mygrep
 PROG2 = scripter
 
-
 SRC1 = mygrep.c
 SRC2 = scripter.c
-
 
 OBJ1 = $(SRC1:.c=.o)
 OBJ2 = $(SRC2:.c=.o)
