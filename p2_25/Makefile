@@ -1,5 +1,10 @@
-CC = gcc
-CFLAGS = -Wall -Werror -Wextra -O2
+# NO TOCAR / NOT MODIFIED ME ##
+CC=gcc
+FLAGS=-Wno-implicit-function-declaration
+CFLAGS=-I.
+###############################
+
+# MODIFY ME ##
 
 PROG1 = mygrep
 PROG2 = scripter
@@ -27,3 +32,4 @@ clean:
 
 distclean: clean
 	rm -f *~
+
