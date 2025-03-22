@@ -1,3 +1,2 @@
 ## Script de SSOO
-ls | wc -l
-cat archivo.txt | grep "texto"
+sort < text.txt > hola.txt
