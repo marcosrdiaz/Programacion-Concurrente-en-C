@@ -1,10 +1,12 @@
-hola bebe
-segunda line4
-asnsdf
-asg6daskulo82787
-dajbsd4asda
-dsadsa4
-sdfadafs
-safadsfkulo
-fdsaf
-kuulo
+a
+j
+h
+g
+f
+d
+s
+x
+c
+v
+
+sort < text.txt > hola.txt

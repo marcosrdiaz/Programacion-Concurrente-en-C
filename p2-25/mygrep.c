@@ -42,9 +42,10 @@ int main(int argc, char **argv) {
                     char *palabra = malloc(j - line_start + 1);
                     memcpy(palabra, buffer + line_start, j - line_start);
                     palabra[j - line_start] = '\0'; 
-                    printf("Found: %s", palabra);
+                    printf("Found: %s\n", palabra);
                     found = 1;
                     match_index = 0;
+                    free(palabra);
                 }
             } else {
                 match_index = 0;
@@ -66,6 +67,7 @@ int main(int argc, char **argv) {
     if (!found) {
         printf("%s not found.\n", argv[2]);
     }
+
 
     close(fd);
     return 0;

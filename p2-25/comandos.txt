@@ -1,5 +1,3 @@
 ## Script de SSOO
-ls -l
-cat comandos.txt | grep ls
-cat fich > fich2 &
-ls -l | sort < fichero
+ls | wc -l
+cat archivo.txt | grep "texto"
