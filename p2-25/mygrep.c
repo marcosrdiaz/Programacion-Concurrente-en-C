@@ -10,7 +10,7 @@
 
 int main(int argc, char **argv) {
     if (argc != 3) {
-        printf("Usage: %s <ruta_fichero> <cadena_busqueda>\n", argv[0]);
+        fprintf(stderr,"Usage: %s <ruta_fichero> <cadena_busqueda>\n", argv[0]);
         return -1;
     }
 
@@ -27,7 +27,6 @@ int main(int argc, char **argv) {
     int line_number = 1;
     int match_index = 0;
     ssize_t line_start = 0;
-    ssize_t line_length = 0;
 
     while ((bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0) {
         for (ssize_t i = 0; i < bytes_read; i++) {

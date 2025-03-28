@@ -6,3 +6,4 @@ set(CMAKE_C_STANDARD 11)
 add_executable(P2_25
             mygrep.c
             scripter.c)
+
