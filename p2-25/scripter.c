@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include <signal.h>
 
 /* CONST VARS */
 const int max_line = 1024;
@@ -126,6 +125,107 @@ int procesar_linea(char *linea, char *comandos[], char *argvv[][max_args]) {
 
 }
 
+void ejecutar_comandos(char *linea) {
+    char *comandos[max_commands];
+    char *argvv[max_commands][max_args];
+    //char temp_linea[max_line];
+    //strcpy(temp_linea, linea);
+    int num_comandos = procesar_linea(linea, comandos, argvv);
+
+    int pipes[max_commands - 1][2];     // Array para almacenar descriptores de archivo de pipes
+    pid_t pids[max_commands];           // Array para almacenar IDs de procesos
+
+    for (int j = 0; j < num_comandos; j++) {
+        if (j < num_comandos - 1) {
+            // Se crea una pipe para cada comando excepto el último
+            if (pipe(pipes[j]) < 0) {
+                perror("Error al crear pipe");
+                exit(1);
+            }
+        }
+
+        pids[j] = fork(); // Se crea un nuevo proceso para cada comando
+        switch (pids[j]){
+            case -1:
+                perror("Error al crear el proceso hijo");
+                exit(1);
+            case 0:
+                // Proceso hijo
+                if (j > 0) {
+                    // Redirigir la entrada estándar al extremo de lectura de la pipe anterior
+                    dup2(pipes[j - 1][0], STDIN_FILENO);
+                    close(pipes[j - 1][0]);
+                    close(pipes[j - 1][1]);
+                }
+                if (j < num_comandos - 1) {
+                    // Redirigir la salida estándar al extremo de escritura de la pipe actual
+                    dup2(pipes[j][1], STDOUT_FILENO);
+                    close(pipes[j][0]);
+                    close(pipes[j][1]);
+                }
+                if (filev[0] && j == 0) {
+                    int fd_in = open(filev[0], O_RDONLY);
+                    if (fd_in < 0) {
+                        perror("Error al abrir archivo de entrada");
+                        exit(1);
+                    }
+                    if (dup2(fd_in, STDIN_FILENO) < 0) {
+                        perror("Error al redirigir STDIN");
+                        close(fd_in);
+                        exit(1);
+                    }
+                    close(fd_in);
+                }
+                if (filev[1] && j == num_comandos - 1) {
+                    int fd_out = open(filev[1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                    if (fd_out < 0) {
+                        perror("Error al abrir archivo de salida");
+                        exit(1);
+                    }
+                    if (dup2(fd_out, STDOUT_FILENO) < 0) {
+                        perror("Error al redirigir STDOUT");
+                        close(fd_out);
+                        exit(1);
+                    }
+                    close(fd_out);
+                }
+                if (filev[2] && j == num_comandos - 1) {
+                    int fd_err = open(filev[2], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                    if (fd_err < 0) {
+                        perror("Error al abrir archivo de error");
+                        exit(1);
+                    }
+                    if (dup2(fd_err, STDERR_FILENO) < 0) {
+                        perror("Error al redirigir STDERR");
+                        close(fd_err);
+                        exit(1);
+                    }
+                    close(fd_err);
+                }
+
+                execvp(argvv[j][0], argvv[j]); // Ejecutar el comando
+                perror("Error en execvp");
+                exit(1);
+            default:
+                if (j > 0) {
+                    close(pipes[j - 1][0]);
+                    close(pipes[j - 1][1]);
+                }
+                if (background == 0) {
+                    waitpid(pids[j], NULL, 0);
+                } else {
+                    if (j == num_comandos - 1) printf("[%d]\n", pids[j]);
+                }
+        }
+    }
+    // Gestionar la finalización de procesos hijos en background
+    if (background == 1) {
+        for (int j = 0; j < num_comandos; j++) {
+            waitpid(pids[j], NULL, WNOHANG);
+        }
+    }
+}
+
 int main(int argc, char *argv[]) {
     if (argc != 2) {
         perror("Error: Número de argumentos inválido\n");
@@ -135,7 +235,7 @@ int main(int argc, char *argv[]) {
     int fd = open(argv[1], O_RDONLY);
     if (fd < 0) {
         perror("Error al abrir el fichero");
-        return -2;
+        return -1;
     }
 
     int linea_act = 0;
@@ -166,112 +266,10 @@ int main(int argc, char *argv[]) {
                     close(fd);
                     return -1;
                 }
-                printf("\n------------%s------------\n\n", linea);
+                //printf("\n------------%s------------\n\n", linea);
 
                 if (linea_act >= 1) {
-                    char *comandos[max_commands];
-                    char *argvv[max_commands][max_args];
-                    char temp_linea[max_line];
-                    strcpy(temp_linea, linea);
-                    //fprintf(stderr, "%s\n", temp_linea);
-                    int num_comandos = procesar_linea(temp_linea, comandos, argvv);
-                    //fprintf(stderr, "linea_temp = %s\n", temp_linea);
-                    //fprintf(stderr, "linea original: %s\n", linea);
-                    //fprintf(stderr, "argvv[0] = %s\n", *argvv[0]);
-                    int pipes[max_commands - 1][2];     // Array para almacenar descriptores de archivo de pipes
-                    pid_t pids[max_commands];           // Array para almacenar IDs de procesos
-
-                    for (int j = 0; j < num_comandos; j++) {
-                        //fprintf(stderr, "num comandos = %d\n", num_comandos);
-                        if (j < num_comandos - 1) {
-                            // Se crea una pipe para cada comando excepto el último
-                            //perror("hola\n");
-                            if (pipe(pipes[j]) < 0) {
-                                perror("Error al crear pipe");
-                                exit(EXIT_FAILURE);
-                            }
-                            //perror("Pipe creada\n");
-                        }
-
-                        pids[j] = fork(); // Se crea un nuevo proceso para cada comando
-                        switch (pids[j]){
-                            case -1:
-                                perror("Error al crear el proceso hijo");
-                                exit(EXIT_FAILURE);
-
-                            case 0:
-                             // Proceso hijo
-                                 //perror("Estoy en el hijo\n");
-                                if (j > 0) {
-                                    // Redirigir la entrada estandar al extremo de lectura de la pipe anterior
-                                    //perror("Redirigiendo entrada estandar al extremo de lectura de la pipe anterior\n");
-                                    dup2(pipes[j - 1][0], STDIN_FILENO);
-                                    close(pipes[j - 1][0]);
-                                    close(pipes[j - 1][1]);
-                                }
-                                if (j < num_comandos - 1) {
-                                    // Redirigir la salida estandar al extremo de escritura de la pipe actual
-                                    //perror("Redirigir la salida estandar al extremo de escritura de la pipe actual\n");
-                                    dup2(pipes[j][1], STDOUT_FILENO);
-                                    close(pipes[j][0]);
-                                    close(pipes[j][1]);
-                                    //perror("Pipe de Redirigir la salida estandar al extremo de escritura de la pipe actual cerrada\n");
-                                }
-                                if (filev[0] && j == 0) {
-                                    //perror("Redirigiendo entrada estandar al archivo de entrada\n");
-                                    int fd_in = open(filev[0], O_RDONLY);
-                                    if (fd_in < 0) {
-                                        perror("Error al abrir archivo de entrada");
-                                        exit(EXIT_FAILURE);
-                                    }
-                                    dup2(fd_in, STDIN_FILENO);
-                                    close(fd_in);
-                                    //perror("Redireccion entrada estandar hecha\n");
-                                }
-                                if (filev[1] && j == num_comandos - 1) {
-                                    int fd_out = open(filev[1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
-                                    if (fd_out < 0) {
-                                        perror("Error al abrir archivo de salida");
-                                        exit(EXIT_FAILURE);
-                                    }
-                                    dup2(fd_out, STDOUT_FILENO);
-                                    close(fd_out);
-                                }
-                                if (filev[2] && j == num_comandos - 1) {
-                                    int fd_err = open(filev[2], O_WRONLY | O_CREAT | O_TRUNC, 0644);
-                                    if (fd_err < 0) {
-                                        perror("Error al abrir archivo de error");
-                                        exit(EXIT_FAILURE);
-                                    }
-                                    dup2(fd_err, STDERR_FILENO);
-                                    close(fd_err);
-                                }
-                                //perror("voy a hacer el execvp\n");
-                                //fprintf(stderr, "argvv[0] = %s\n", *argvv[0]);
-                                execvp(argvv[j][0], argvv[j]); // Ejecutar el comando
-                                perror("Error en execvp");
-                                exit(EXIT_FAILURE);
-                            default:
-                                //perror("Estoy en el padre\n");
-                                //fprintf(stderr, "background = %d\n", background);
-                                if (j > 0){
-                                    // Se cierran los extremos de lectura y escritura de la pipe anterior en el proceso padre
-                                    //perror("Cerrando pipe anterior en padre\n");
-                                    close(pipes[j - 1][0]);
-                                    close(pipes[j - 1][1]);
-                                }
-                                if (background == 0) {
-                                    //perror("Esperando a que termine el proceso hijo\n");
-                                    waitpid(pids[j], NULL, 0);
-                                    //perror("terminó el proceso hijo\n");
-
-                                } else {
-                                    printf("Proceso en background con PID %d\n", pids[j]);
-                                }
-                        }
-                        //perror("primera vuelta terminada\n");
-                    }
-
+                    ejecutar_comandos(linea);
                 }
                 linea_act++;
                 start = i + 1;
@@ -283,13 +281,22 @@ int main(int argc, char *argv[]) {
         memmove(buffer, buffer + start, offset);
     }
 
+    // Procesar la última línea si no termina con un salto de línea
+    if (offset > 0) {
+        buffer[offset] = '\0';
+        strncpy(linea, buffer, offset);
+        linea[offset] = '\0';
+        if (linea[0] != '\0' && strspn(linea, " \t") != strlen(linea)) {
+            ejecutar_comandos(linea);
+        }
+    }
     if (bytes_read < 0) {
         perror("Error al leer el fichero");
         close(fd);
         return -3;
     }
 
-    printf("Salí bien?\n");
+   // printf("Salí bien?\n");
     close(fd);
     return 0;
 }

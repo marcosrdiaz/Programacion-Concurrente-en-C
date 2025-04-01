@@ -1,4 +1,9 @@
 ## Script de SSOO
+sleep 10 &
+sleep 10 &
+sleep 10 &
+ps aux | grep sleep
+echo "ssoo,os"
 ls -l
 whoami
 uname -a
@@ -11,4 +16,4 @@ cat salida-vacia.txt
 cat error.err
 sort < text.txt > hola.txt
 grep "sort" text.txt | wc -l
-grep .txt *
+echo "Soy el último"
