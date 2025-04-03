@@ -1,19 +1,2 @@
 ## Script de SSOO
-sleep 10 &
-sleep 10 &
-sleep 10 &
-ps aux | grep sleep
-echo "ssoo,os"
-ls -l
-whoami
-uname -a
-ls -l > salida.txt
-cat /etc/passwd > usuarios.txt
-wc -l < usuarios.txt
-ls -las | wc
-ls /no_existe > salida-vacia.txt !> error.err
-cat salida-vacia.txt
-cat error.err
-sort < text.txt > hola.txt
-grep "sort" text.txt | wc -l
-echo "Soy el último"
+sort < text.txt > salida.txt !> error.txt

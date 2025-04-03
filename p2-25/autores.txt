@@ -1,3 +1,3 @@
-100495841,RamosInfante,Marcos
-100495901,SabaterGabriel,Jaime
-100495835,RodrigoDíaz,Marcos
+100495841,Ramos Infante,Marcos
+100495901,Sabater Gabriel,Jaime
+100495835,Rodrigo Díaz,Marcos

@@ -125,7 +125,7 @@ int procesar_linea(char *linea, char *comandos[], char *argvv[][max_args]) {
 
 }
 
-void ejecutar_comandos(char *linea) {
+int ejecutar_comandos(char *linea) {
     char *comandos[max_commands];
     char *argvv[max_commands][max_args];
     //char temp_linea[max_line];
@@ -140,7 +140,7 @@ void ejecutar_comandos(char *linea) {
             // Se crea una pipe para cada comando excepto el último
             if (pipe(pipes[j]) < 0) {
                 perror("Error al crear pipe");
-                exit(1);
+                return -1;
             }
         }
 
@@ -148,18 +148,28 @@ void ejecutar_comandos(char *linea) {
         switch (pids[j]){
             case -1:
                 perror("Error al crear el proceso hijo");
-                exit(1);
+                return -1;
             case 0:
                 // Proceso hijo
                 if (j > 0) {
                     // Redirigir la entrada estándar al extremo de lectura de la pipe anterior
-                    dup2(pipes[j - 1][0], STDIN_FILENO);
+                    if (dup2(pipes[j - 1][0], STDIN_FILENO) < 0) {
+                        perror("Error al redirigir STDIN");
+                        close(pipes[j - 1][0]);
+                        close(pipes[j - 1][1]);
+                        return -1;
+                    }
                     close(pipes[j - 1][0]);
                     close(pipes[j - 1][1]);
                 }
                 if (j < num_comandos - 1) {
                     // Redirigir la salida estándar al extremo de escritura de la pipe actual
-                    dup2(pipes[j][1], STDOUT_FILENO);
+                    if (dup2(pipes[j][1], STDOUT_FILENO) < 0) {
+                        perror("Error al redirigir STDOUT");
+                        close(pipes[j][0]);
+                        close(pipes[j][1]);
+                        return -1;
+                    }
                     close(pipes[j][0]);
                     close(pipes[j][1]);
                 }
@@ -167,12 +177,12 @@ void ejecutar_comandos(char *linea) {
                     int fd_in = open(filev[0], O_RDONLY);
                     if (fd_in < 0) {
                         perror("Error al abrir archivo de entrada");
-                        exit(1);
+                        exit(0);
                     }
                     if (dup2(fd_in, STDIN_FILENO) < 0) {
                         perror("Error al redirigir STDIN");
                         close(fd_in);
-                        exit(1);
+                        return -1;
                     }
                     close(fd_in);
                 }
@@ -180,12 +190,12 @@ void ejecutar_comandos(char *linea) {
                     int fd_out = open(filev[1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
                     if (fd_out < 0) {
                         perror("Error al abrir archivo de salida");
-                        exit(1);
+                        exit(0);
                     }
                     if (dup2(fd_out, STDOUT_FILENO) < 0) {
                         perror("Error al redirigir STDOUT");
                         close(fd_out);
-                        exit(1);
+                        return -1;
                     }
                     close(fd_out);
                 }
@@ -193,12 +203,12 @@ void ejecutar_comandos(char *linea) {
                     int fd_err = open(filev[2], O_WRONLY | O_CREAT | O_TRUNC, 0644);
                     if (fd_err < 0) {
                         perror("Error al abrir archivo de error");
-                        exit(1);
+                        exit(0);
                     }
                     if (dup2(fd_err, STDERR_FILENO) < 0) {
                         perror("Error al redirigir STDERR");
                         close(fd_err);
-                        exit(1);
+                        return -1;
                     }
                     close(fd_err);
                 }
@@ -214,7 +224,10 @@ void ejecutar_comandos(char *linea) {
                 if (background == 0) {
                     waitpid(pids[j], NULL, 0);
                 } else {
-                    if (j == num_comandos - 1) printf("[%d]\n", pids[j]);
+                    if (j == num_comandos - 1){
+                        printf("[%d]\n", pids[j]);
+                        fflush(stdout);
+                    }
                 }
         }
     }
@@ -224,6 +237,7 @@ void ejecutar_comandos(char *linea) {
             waitpid(pids[j], NULL, WNOHANG);
         }
     }
+    return 0;
 }
 
 int main(int argc, char *argv[]) {
@@ -269,7 +283,10 @@ int main(int argc, char *argv[]) {
                 //printf("\n------------%s------------\n\n", linea);
 
                 if (linea_act >= 1) {
-                    ejecutar_comandos(linea);
+                    if (ejecutar_comandos(linea) < 0){
+                        close (fd);
+                        return -1;
+                    }
                 }
                 linea_act++;
                 start = i + 1;
@@ -287,13 +304,16 @@ int main(int argc, char *argv[]) {
         strncpy(linea, buffer, offset);
         linea[offset] = '\0';
         if (linea[0] != '\0' && strspn(linea, " \t") != strlen(linea)) {
-            ejecutar_comandos(linea);
+            if ( ejecutar_comandos(linea) < 0){
+                close(fd);
+                return -1;
+            }
         }
     }
     if (bytes_read < 0) {
         perror("Error al leer el fichero");
         close(fd);
-        return -3;
+        return -1;
     }
 
    // printf("Salí bien?\n");
