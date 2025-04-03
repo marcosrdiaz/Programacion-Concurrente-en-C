@@ -25,7 +25,7 @@ void imprimir_línea(char *buffer, ssize_t start, ssize_t bytes_read) {
 
 int main(int argc, char **argv) {
     if (argc != 3) {
-        fprintf(stderr,"Usage: %s <ruta_fichero> <cadena_busqueda>\n", argv[0]);
+        perror("Usage: ./mygrep <ruta_fichero> <cadena_busqueda>\n");  
         return -1;
     }
 
@@ -46,9 +46,10 @@ int main(int argc, char **argv) {
     // Variable lógica para marcar si una linea ha sido impresa (1) o no (0)
     int line_printed = 0;
 
-    while ((bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0) {
-        for (ssize_t i = 0; i < bytes_read; i++) {
+    while ((bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0) {  // Leer el fichero de 1024 en 1024 y alacenarlo en buffer
+        for (ssize_t i = 0; i < bytes_read; i++) {  // recorrer el buffer de carácter en carácter buscando la cadena
             if (buffer[i] == argv[2][match_index]) {
+                // Si coincide, incrementar el índice de coincidencia (buscar la siguiente letra)
                 match_index++;
                 if (match_index == l_cadena) {
                     // Encontró la cadena completa, imprimir la línea
