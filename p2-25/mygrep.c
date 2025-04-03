@@ -8,6 +8,21 @@
 
 #define BUFFER_SIZE 1024
 
+// Función para imprimir la línea que contiene la cadena buscada
+void imprimir_línea(char *buffer, ssize_t start, ssize_t bytes_read) {
+    ssize_t j = start;
+    // Buscar el final de la línea '\n
+    while (j < bytes_read && buffer[j] != '\n') {
+        j++;
+    }
+    char *palabra = malloc(j - start + 1);
+    memcpy(palabra, buffer + start, j - start);
+    palabra[j - start] = '\0'; 
+    printf("%s\n", palabra);
+    free(palabra);
+}
+
+
 int main(int argc, char **argv) {
     if (argc != 3) {
         fprintf(stderr,"Usage: %s <ruta_fichero> <cadena_busqueda>\n", argv[0]);
@@ -28,29 +43,35 @@ int main(int argc, char **argv) {
     int match_index = 0;
     ssize_t line_start = 0;
 
+    // Variable lógica para marcar si una linea ha sido impresa (1) o no (0)
+    int line_printed = 0;
+
     while ((bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0) {
         for (ssize_t i = 0; i < bytes_read; i++) {
             if (buffer[i] == argv[2][match_index]) {
                 match_index++;
                 if (match_index == l_cadena) {
                     // Encontró la cadena completa, imprimir la línea
-                    ssize_t j = line_start;
-                    while (j < bytes_read && buffer[j] != '\n') {
-                        j++;
+                    if (line_printed == 0) { // Salvo que ya se haya impreso
+                        imprimir_línea(buffer, line_start, bytes_read);
                     }
-                    char *palabra = malloc(j - line_start + 1);
-                    memcpy(palabra, buffer + line_start, j - line_start);
-                    palabra[j - line_start] = '\0'; 
-                    printf("Found: %s\n", palabra);
-                    found = 1;
-                    match_index = 0;
-                    free(palabra);
+                    line_printed = 1; // Marcar que se ha impreso una línea
+                    match_index = 0; // Reiniciar el índice de coincidencia
+                    found = 1; // Marcar que se encontró la cadena al menos una vez
                 }
             } else {
+                // Si no coincide, reiniciar el índice de coincidencia
                 match_index = 0;
+                // y si coincide con el primer carácter de la cadena, volver a atrás
+                if (buffer[i] == argv[2][0]) {
+                    i--;
+                }
             }
 
             if (buffer[i] == '\n') {
+                // Marcar que esta nueva línea ha sido impresa
+                line_printed = 0;
+                // Cambiar a la siguiente línea
                 line_start = i + 1;
                 line_number++;
             }
