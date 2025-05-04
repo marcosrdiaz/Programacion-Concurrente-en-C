@@ -1,2 +1,2 @@
 ## Script de SSOO
-sort < text.txt > salida.txt !> error.txt
+mygrep hola.txt "sort"

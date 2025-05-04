@@ -102,6 +102,10 @@ void procesar_redirecciones(char *args[]) {
  */
 int procesar_linea(char *linea, char *comandos[], char *argvv[][max_args]) {
     int num_comandos = tokenizar_linea(linea, "|", comandos, max_commands);
+    if (num_comandos == 1 && strcmp(comandos[0], "&") == 0) {
+        fprintf(stderr, "Error: El carácter '&' no puede ir solo.\n");
+        return -1;
+    }
     //Check if background is indicated
     if (strchr(comandos[num_comandos - 1], '&')) {
         background = 1;
@@ -113,11 +117,6 @@ int procesar_linea(char *linea, char *comandos[], char *argvv[][max_args]) {
     //Finish processing
     for (int i = 0; i < num_comandos; i++) {
         int args_count = tokenizar_linea(comandos[i], " \t\n", argvv[i], max_args);
-        //fprintf(stderr, "args_count = %d\n", args_count);
-        //fprintf(stderr, "num_comandos: %d\n", num_comandos);
-        //fprintf(stderr, "comandos[i] = %s\n", comandos[i]);
-        //fprintf(stderr, "comando 0 = %s\n", comandos[0]);
-        //fprintf(stderr, "argvv[%d] = %s\n", i, *argvv[i]);
         procesar_redirecciones(argvv[i]);
     }
 
@@ -128,8 +127,6 @@ int procesar_linea(char *linea, char *comandos[], char *argvv[][max_args]) {
 int ejecutar_comandos(char *linea) {
     char *comandos[max_commands];
     char *argvv[max_commands][max_args];
-    //char temp_linea[max_line];
-    //strcpy(temp_linea, linea);
     int num_comandos = procesar_linea(linea, comandos, argvv);
 
     int pipes[max_commands - 1][2];     // Array para almacenar descriptores de archivo de pipes
@@ -212,8 +209,11 @@ int ejecutar_comandos(char *linea) {
                     }
                     close(fd_err);
                 }
-
-                execvp(argvv[j][0], argvv[j]); // Ejecutar el comando
+                if (strcmp(argvv[j][0], "mygrep") == 0) {
+                    execvp("./mygrep", argvv[j]); // Ejecutar mygrep
+                } else {
+                    execvp(argvv[j][0], argvv[j]); // Ejecutar el comando
+                }
                 perror("Error en execvp");
                 exit(1);
             default:

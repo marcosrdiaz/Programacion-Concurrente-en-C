@@ -106,12 +106,16 @@ else
 fi
 
 # Read the file autores.txt line by line
-pattern="^[0-9]+,[A-Za-z]+,[A-Za-z]+$"
+#pattern="^[0-9]+,[A-Za-z]+,[A-Za-z]+$"
+#pattern="^[0-9]+,[A-Za-z]+([[:space:]]+[A-Za-z]+)?,[A-Za-z]+$"
+pattern="^[0-9]+,[[:alpha:] ]+,[[:alpha:] ]+$"
 line_number=0
 all_valid=1
+# Eliminar espacios al inicio/final y normalizar
+sed -i 's/^[[:space:]]*//;s/[[:space:]]*$//' "$authors_file"
 while IFS= read -r line; do
     line_number=$((line_number + 1))
-    if [ -z $line ]; then
+    if [[ -z "${line}" ]] || [[ "$line" =~ ^[[:space:]]*$ ]]; then
         echo "[ENG] Skipping empty line $line_number."
         echo "[ESP] Omitiendo la línea vacía $line_number."
         continue
