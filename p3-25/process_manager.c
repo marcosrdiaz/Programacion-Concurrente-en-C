@@ -42,9 +42,6 @@ void *productor(void *arg) {
             fprintf(stderr, "[ERROR][queue] There was an error while using queue with id: %d.\n", id_belt);
             pthread_exit(NULL);
         }
-
-        printf("[OK][queue] Introduced element with id %d in belt %d.\n", elem.num_edition, elem.id_belt);
-
     }
 
     pthread_exit(NULL);
@@ -65,8 +62,6 @@ void *consumidor(void *arg) {
             fprintf(stderr, "[ERROR][queue] There was an error while using queue with id: %d.\n", id_belt);
             pthread_exit(NULL);
         }
-
-        printf("[OK][queue] Obtained element with id %d in belt %d.\n", elem->num_edition, elem->id_belt);
 
         // Se marca la flag last cuando se ha consumido el último producto
         if (elem->last == 1) {
