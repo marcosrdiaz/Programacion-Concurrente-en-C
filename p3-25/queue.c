@@ -48,7 +48,7 @@ struct queue* queue_init(int size, int belt) {
 
 
 // To Enqueue an element
-int queue_put(struct queue *q, struct element *ele) {
+int queue_put(struct queue *q, struct element *elem) {
     pthread_mutex_lock(&q->mutex);
 
     while (q->count >= q->size) {
@@ -62,16 +62,16 @@ int queue_put(struct queue *q, struct element *ele) {
     }
 
     // Copiar los datos del elemento
-    current->num_edition = ele->num_edition;
-    current->id_belt = ele->id_belt;
+    current->num_edition = elem->num_edition;
+    current->id_belt = elem->id_belt;
     if (q->count == q->size - 1) {
         current->last = 1; // El último elemento
     } else {
         current->last = 0;
     }
-
     q->count++;
 
+    printf("[OK][queue] Introduced element with id %d in belt %d.\n", elem->num_edition, elem->id_belt);
     pthread_cond_signal(&q->not_empty);
     pthread_mutex_unlock(&q->mutex);
     return 0;
@@ -89,9 +89,13 @@ struct element* queue_get(struct queue *q) {
     struct element *item = malloc(sizeof(struct element));
     *item = *(q->first);
 
+    // Imprimir antes de mover el puntero
+    printf("[OK][queue] Obtained element with id %d in belt %d.\n", item->num_edition, item->id_belt);
+
     // Mover el puntero first al siguiente
     q->first = q->first->next;
     q->count--;
+
     pthread_cond_signal(&q->not_full);
     pthread_mutex_unlock(&q->mutex);
     return item;
