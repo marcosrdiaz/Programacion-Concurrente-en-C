@@ -77,7 +77,7 @@ int main(int argc, const char *argv[]) {
 	cinta_t array[max_producers];
 	while (token != NULL) {
 		 if (palabra > 0) {
-			if (index > max_producers) {
+			if (index > max_producers - 1) {
 				fprintf(stderr, "[ERROR][factory_manager] Invalid file.\n");
 				close(fd);
 				return -1;
