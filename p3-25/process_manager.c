@@ -31,7 +31,7 @@ void *productor(void *arg) {
     int num_products = data->num_products;
     
     for (int i = 0; i < num_products; i++) {
-        // Creamos un elemento por cada producto
+        // Se crea un elemento por cada producto
         struct element elem;
         elem.num_edition = i;
         elem.id_belt = id_belt;
@@ -59,7 +59,7 @@ void *consumidor(void *arg) {
     bool *finished = data->finished;
 
     for (int i = 0; i < num_products; i++) {
-        // Recogemos el elemento de la cola
+        // Se recoge el elemento de la cola
         struct element *elem = queue_get(belt);
         if (!elem) {
             fprintf(stderr, "[ERROR][queue] There was an error while using queue with id: %d.\n", id_belt);
@@ -81,12 +81,12 @@ void *consumidor(void *arg) {
 }
 
 int process_manager(cinta_t params) {
-    // cinta_t params tiene como datos id de la cinta, tam_cinta y productos
+    // cinta_t params tiene como datos el id de la cinta, tam_cinta (tamaño) y los productos
 
     printf("[OK][process_manager] Process_manager with id %d waiting to produce %d elements.\n",
            params.id, params.productos);
 
-    // Crear la cinta (cola circular)
+    // Se crea la cinta (cola circular)
     struct queue *belt = queue_init(params.tam_cinta, params.id);
     if (!belt) {
         fprintf(stderr, "[ERROR][process_manager] There was an error executing process_manager with id %d.\n", params.id);
@@ -96,7 +96,7 @@ int process_manager(cinta_t params) {
     printf("[OK][process_manager] Belt with id %d has been created with a maximum of %d elements.\n",
            params.id, params.tam_cinta);
 
-    // Variable para controlar la finalización
+    // Se usa una variable para controlar la finalización
     bool finished = false;
 
     // Datos para pasar a los hilos
@@ -107,10 +107,11 @@ int process_manager(cinta_t params) {
         .finished = &finished
     };
 
-    // Crear los hilos productor y consumidor
+    // Se crean los hilos productor y consumidor
     pthread_t producer, consumer;
     int rc;
 
+    // Productor
     rc = pthread_create(&producer, NULL, productor, &thread_data);
     if (rc) {
         fprintf(stderr, "[ERROR][process_manager] There was an error executing process_manager with id %d.\n", params.id);
@@ -118,6 +119,7 @@ int process_manager(cinta_t params) {
         return -1;
     }
 
+    // Consumidor
     rc = pthread_create(&consumer, NULL, consumidor, &thread_data);
     if (rc) {
         fprintf(stderr, "[ERROR][process_manager] There was an error executing process_manager with id %d.\n", params.id);
@@ -126,7 +128,7 @@ int process_manager(cinta_t params) {
         return -1;
     }
 
-    // Esperar a que finalicen los hilos
+    // Se espera hasta que finalicen los hilos
     if (pthread_join(producer, NULL) != 0) {
         fprintf(stderr, "[ERROR][process_manager] There was an error executing process_manager with id %d.\n", params.id);
         return -1;
@@ -137,12 +139,12 @@ int process_manager(cinta_t params) {
         return -1;
     }
 
-    // Liberar recursos
+    // Se liberan los recursos
     if (queue_destroy(belt) < 0) {
         fprintf(stderr, "[ERROR][process_manager] There was an error executing process_manager with id %d.\n", params.id);
         return -1;
     }
-
+    
     printf("[OK][process_manager] Process_manager with id %d has produced %d elements.\n",
            params.id, params.productos);
 
