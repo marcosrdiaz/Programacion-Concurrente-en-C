@@ -9,7 +9,7 @@ typedef struct {
 }cinta_t;
 
 int buscar_cinta(cinta_t array[], int tamano, int elemento);
+void *control_thread(void *arg);
 
-void *PrintHello(void *threadid);
 int process_manager(cinta_t array);
 #endif //MANAGER_H

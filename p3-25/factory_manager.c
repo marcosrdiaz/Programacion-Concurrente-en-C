@@ -29,11 +29,12 @@ int buscar_index(cinta_t array[], int tamano, int elemento){
 	return 0;
 }
 
-void *manejador_thread(void *arg){
+void *control_thread(void *arg){
 	cinta_t *cinta = (cinta_t *)arg;
 
 	sem_wait(&semaforo);
 	process_manager(*cinta);
+	printf("[OK][factory_manager] Process_manager with id %d has finished.\n", cinta->id);
 	pthread_exit(NULL);
 }
 
@@ -87,10 +88,27 @@ int main(int argc, const char *argv[]) {
 					close(fd);
 					return -1;
 				}
+				if (atoi(token) <= 0){
+					fprintf(stderr,"[ERROR][factory_manager] Invalid file.\n");
+					close(fd);
+					return -1;
+				}
 				array[index].id = atoi(token); // ID de la cinta
 			}
-			if (subindex == 2) array[index].tam_cinta = atoi(token); // Tamaño de la cinta
+			if (subindex == 2){
+				if (atoi(token) <= 0){
+					fprintf(stderr,"[ERROR][factory_manager] Invalid file.\n");
+					close(fd);
+					return -1;
+				}
+				array[index].tam_cinta = atoi(token);
+			} // Tamaño de la cinta
 			if (subindex == 3){
+				if (atoi(token) <= 0){
+					fprintf(stderr,"[ERROR][factory_manager] Invalid file.\n");
+					close(fd);
+					return -1;
+				}
 				array[index].productos = atoi(token); // Productos en la cinta
 				subindex = 0; // Reiniciar subíndice para el siguiente grupo
 				index++;
@@ -115,7 +133,7 @@ int main(int argc, const char *argv[]) {
 	sem_init(&semaforo, 0, 0);
 	// Imprimir resultados para verificar
 	for (int i = 0; i < index; i++) {
-		if (pthread_create(&threads[i], NULL, manejador_thread, &array[i]) != 0){
+		if (pthread_create(&threads[i], NULL, control_thread, &array[i]) != 0){
 			fprintf(stderr, "[ERROR][factory_manager] creación del hilo para cinta %d\n", array[i].id);
 			return -1;
 		}
@@ -131,6 +149,6 @@ int main(int argc, const char *argv[]) {
 	}
 
 	sem_destroy(&semaforo);
-
+	printf("[OK][factory_manager] Finishing.\n");
 	return 0;
 }
