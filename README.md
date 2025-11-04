@@ -1,7 +1,9 @@
 ***Breve descripción***
+
 Conjunto de prácticas del curso de Sistemas Operativos donde se desarrollan programas en C para comprender llamadas al sistema, programación multi-hilo, control de procesos y gestión de colas.
 
 ***Qué hace el proyecto***
+
 Práctica 1: Programa para crear archivos con permisos personalizados y otro para combinar y ordenar listas de alumnos desde varios archivos.
 
 Práctica 2: (No incluida explícitamente, se combina con otras)
@@ -16,6 +18,7 @@ Tecnologías usadas
 - Manejo de archivos y estructuras en C
 
 ***Cómo se ejecuta***
+
 - Cada práctica contiene archivos C específicos que se compilan con gcc.
 - Para práctica 1 y 3, se ejecutan con argumentos indicados (nombres de archivos o fichero de configuración).
 - Ejemplo para práctica 1 (crear archivo):
@@ -25,6 +28,7 @@ Tecnologías usadas
 donde fabrica.txt contiene la configuración de cintas y productos.
 
 ***Ejemplo de salida***
+
 - Mensajes en consola que indican éxito o error en operaciones de creación de archivos, combinación y ordenación de alumnos.
 - En multi-hilo, mensajes de inicio y finalización de procesos productores y consumidores, confirmando que los productos han sido procesados y la aplicación ha terminado correctamente.
 
