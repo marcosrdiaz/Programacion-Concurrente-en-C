@@ -10,7 +10,7 @@ Práctica 2: (No incluida explícitamente, se combina con otras)
 
 Práctica 3: Simulación concurrente de gestión de procesos en una fábrica con múltiples cintas transportadoras utilizando hilos pthread y semáforos, implementando productores-consumidores con sincronización segura.
 
-Tecnologías usadas
+***Tecnologías usadas***
 - Lenguaje C
 - Librerías POSIX pthread (hilos)
 - Semáforos (semt)
