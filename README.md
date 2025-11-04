@@ -1,3 +1,4 @@
+# Proyecto Sistemas Operativos
 ***Breve descripción***
 
 Conjunto de prácticas del curso de Sistemas Operativos donde se desarrollan programas en C para comprender llamadas al sistema, programación multi-hilo, control de procesos y gestión de colas.
